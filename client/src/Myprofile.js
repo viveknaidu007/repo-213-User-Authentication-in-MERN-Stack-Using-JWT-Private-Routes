@@ -17,7 +17,10 @@ const Myprofile = () => {
     if(!token){
         return <Redirect to='/login' />
     }
+
+
     return (
+
         <div>
             {
                 data &&
@@ -34,6 +37,7 @@ const Myprofile = () => {
             </center>
         }
         </div>
+        
     )
 }
 

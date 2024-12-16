@@ -1,55 +1,49 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const app = express();
+const express = require('express');
+const mongoose = require('mongoose');
 const Registeruser = require('./model');
 const jwt = require('jsonwebtoken');
 const middleware = require('./middleware');
-const cors = require("cors")
+const cors = require('cors');
+const app = express();
 
 
-// Middleware to parse JSON data
+mongoose.connect("mongodb+srv://test:test@cluster0.iuu8d.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",{
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useCreateIndex : true
+}).then(
+    () => console.log('DB Connection established')
+)
+
 app.use(express.json());
 
+app.use(cors({origin:"*"}))
 
-mongoose.connect("mongodb+srv://vivekpavankalyan:RSzxYRnwdySL0TU3@cluster0.w3bq9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-    .then(() => console.log("Db connection established"))
-    .catch(err => console.error("Database connection error:", err));
-
-
-app.use(cors({origin:"*"}))    
-
-
-app.post('/register', async (req, res) => {
-    try {
-        const { username, email, password, confirmpassword } = req.body;
-
-        let exist = await Registeruser.findOne({ email });
-
-        if (exist) {
-            return res.status(400).send('User Already Exists');
+app.post('/register',async (req, res) =>{
+    try{
+        const {username,email,password,confirmpassword} = req.body;
+        let exist = await Registeruser.findOne({email})
+        if(exist){
+            return res.status(400).send('User Already Exist')
         }
-
-        if (password !== confirmpassword) {
+        if(password !== confirmpassword){
             return res.status(400).send('Passwords are not matching');
         }
-
         let newUser = new Registeruser({
             username,
             email,
             password,
             confirmpassword
-        });
-
+        })
         await newUser.save();
-        res.status(200).send('Registered Successfully');
+        res.status(200).send('Registered Successfully')
 
-    } catch (err) {
-        console.error(err);
-        return res.status(500).send('Internal Server Error');
     }
-});
-
-
+    catch(err){
+        console.log(err)
+        return res.status(500).send('Internel Server Error')
+    }
+})
 
 app.post('/login',async (req, res) => {
     try{
@@ -80,11 +74,20 @@ app.post('/login',async (req, res) => {
     }
 })
 
+app.get('/myprofile',middleware,async(req, res)=>{
+    try{
+        let exist = await Registeruser.findById(req.user.id);
+        if(!exist){
+            return res.status(400).send('User not found');
+        }
+        res.json(exist);
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500).send('Server Error')
+    }
+})
 
-
-
-app.listen(4000, () => {
-    console.log("Server running at http://localhost:4000");
-});
-
-
+app.listen(5000,()=>{
+    console.log('Server running...')
+})
